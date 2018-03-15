@@ -1,0 +1,19 @@
+---
+title: ""
+output: pdf_document
+date: "Comparación al `r format(Sys.Date()-1, '%d de %B del %Y')`"
+---
+
+```{r}
+df <- values[["df"]]
+df2 <- values[["df2"]]
+#Portafolios de Inversión
+rhandsontable(df, rowHeaders = NULL, stretchH = "all") %>%
+        hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
+        hot_col("Porcentaje", format = "0%")
+
+rhandsontable(df2, rowHeaders = NULL, stretchH = "all") %>%
+        hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
+        hot_col("Porcentaje", format = "0%")
+```
+
