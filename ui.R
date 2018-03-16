@@ -16,7 +16,7 @@ shinyUI(fluidPage(
       wellPanel(h4("Monto a Invertir"),numericInput("monto_inversion","Monto",100000,min=100000)),
       wellPanel(dateRangeInput('rangofechas',label = 'Rango de fechas para el comparativo',start = Sys.Date()-253, 
                      end = Sys.Date()-1,language = "es",separator = "a")),
-      wellPanel(downloadButton("pdf_creator", "Generar PDF"))),
+      wellPanel(downloadButton("pdfcreator", "Generar PDF"))),
     
     mainPanel(
       h3("Portafolios"),

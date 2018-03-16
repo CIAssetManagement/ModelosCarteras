@@ -1,19 +1,58 @@
 ---
-title: ""
+title: "Comparativo CI Estrategias"
+date: "Comparativo al `r format(Sys.Date()-1, '%d de %B del %Y')`"
 output: pdf_document
-date: "Comparación al `r format(Sys.Date()-1, '%d de %B del %Y')`"
+params:
+  ci_portafolio: NA
+  otro_portafolio: NA
+  grafica_rendimiento: NA
+  ci_summary: NA
+  otro_summary: NA
+  ci_pie: NA
+  otro_pie: NA
 ---
 
-```{r}
-df <- values[["df"]]
-df2 <- values[["df2"]]
-#Portafolios de Inversión
-rhandsontable(df, rowHeaders = NULL, stretchH = "all") %>%
-        hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
-        hot_col("Porcentaje", format = "0%")
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(webshot)
+library(knitr)
 
-rhandsontable(df2, rowHeaders = NULL, stretchH = "all") %>%
-        hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
-        hot_col("Porcentaje", format = "0%")
+tmpFilepie1 <- tempfile(fileext = ".png")
+export(params$ci_pie, file = tmpFilepie1)
+tmpFilepie2 <- tempfile(fileext = ".png")
+export(params$otro_pie, file = tmpFilepie2)
+```
+
+```{r}
+tmpFile <- tempfile(fileext = ".png")
+export(params$grafica_rendimiento, file = tmpFile)
+```
+
+![](`r tmpFilepie1`) ![](`r tmpFilepie2`)
+
+```{r}
+p1 <- params$ci_portafolio
+p2 <- params$otro_portafolio
+p1$Porcentaje <- paste0(params$ci_portafolio$Porcentaje*100,"%")
+p2$Porcentaje <- paste0(params$otro_portafolio$Porcentaje*100,"%")
+
+p1 %>%
+  filter(Porcentaje > 0) %>%
+  kable(booktabs = TRUE, format = "markdown", align <- c("r","l"))
+
+p2 %>%
+  filter(Porcentaje > 0) %>%
+  kable(booktabs = TRUE, format = "markdown", align <- c("r","l"))
+
+```
+
+```{r}
+
+params$ci_summary %>%
+  kable(booktabs = TRUE, format = "markdown", align <- c("r","l"))
+
+params$otro_summary %>%
+  kable(booktabs = TRUE, format = "markdown", align <- c("r","l"))
+
 ```
 
