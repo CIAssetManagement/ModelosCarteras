@@ -25,7 +25,9 @@ shinyUI(fluidPage(
       br(),
       fluidRow(
         column(width = 6, h4("Portafolio de CI Estrategias")),
-        column(width = 6, h4("Portafolio Comparativo"))),
+        conditionalPanel(
+          condition = "input.comparativo == TRUE",
+          column(width = 6, h4("Portafolio Comparativo")))),
       fluidRow(
         column(width = 6, rHandsontableOutput("primerportafolio")),
         column(width = 6, rHandsontableOutput("segundoportafolio"))),
