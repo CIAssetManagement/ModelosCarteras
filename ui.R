@@ -13,10 +13,12 @@ shinyUI(fluidPage(
       br(),
       "3. Observar el resultado de los cálculos. \n",
       br(), br(),
-      wellPanel(h4("Monto a Invertir"),numericInput("monto_inversion","Monto",100000,min=100000)),
+      wellPanel(h4("Nombre del Cliente"),textInput("nombre","","")),
+      wellPanel(h4("Monto a Invertir"),numericInput("monto_inversion","",100000,min=100000)),
+      wellPanel(h4("¿Quieres realizar un comparativo de fondos?"),checkboxInput("comparativo", "Sí", FALSE)),
       wellPanel(dateRangeInput('rangofechas',label = 'Rango de fechas para el comparativo',start = Sys.Date()-253, 
                      end = Sys.Date()-1,language = "es",separator = "a")),
-      wellPanel(downloadButton("pdfcreator", "Generar PDF"))),
+      wellPanel(downloadButton("archivecreator", "Generar archivo"))),
     
     mainPanel(
       h3("Portafolios"),

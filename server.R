@@ -28,24 +28,6 @@ shinyServer(function(input, output) {
     values[["df2"]] <- df2  
   })
   
-  output$primerportafolio <- renderRHandsontable({
-    df <- values[["df"]]
-    if(!is.null(df)){
-      rhandsontable(df, rowHeaders = NULL, stretchH = "all") %>%
-        hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
-        hot_col("Porcentaje", format = "0%")
-    }
-  })
-  
-  output$segundoportafolio <- renderRHandsontable({
-    df2 <- values[["df2"]]
-    if(!is.null(df2)){
-      rhandsontable(df2, rowHeaders = NULL, stretchH = "all") %>%
-        hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
-        hot_col("Porcentaje", format = "0%")
-    }
-  })
-  
   observe({
     
     values[["fecha"]] <- input$rangofechas[2]
@@ -59,7 +41,7 @@ shinyServer(function(input, output) {
       estadisticas1 <- data.frame(estadisticas1, row.names = c("Mínimo","Máximo","Promedio","Volatilidad","Sortino"))
       colnames(estadisticas1) <- c("Estadísticas Mensuales")
       values[["estadisticas1"]] <- estadisticas1
-      if(!is.null(portafolio2)){
+      if(!is.null(portafolio2) & input$comparativo == TRUE){
         estadisticas2 <- estadisticas_portafolios(portafolio2,input$rangofechas[1],input$rangofechas[2])
         estadisticas2 <- data.frame(estadisticas2, row.names = c("Mínimo","Máximo","Promedio","Volatilidad","Sortino"))
         colnames(estadisticas2) <- c("Estadísticas Mensuales")
@@ -67,50 +49,81 @@ shinyServer(function(input, output) {
       }
     }
     
+    output$primerportafolio <- renderRHandsontable({
+      df <- values[["df"]]
+      if(!is.null(df)){
+        rhandsontable(df, rowHeaders = NULL, stretchH = "all") %>%
+          hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
+          hot_col("Porcentaje", format = "0%")
+      }
+    })
+    
+    output$segundoportafolio <- renderRHandsontable({
+      df2 <- values[["df2"]]
+      if(!is.null(df2) & input$comparativo == TRUE){
+        rhandsontable(df2, rowHeaders = NULL, stretchH = "all") %>%
+          hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
+          hot_col("Porcentaje", format = "0%")
+      }
+    })
+    
     output$primerpie <- renderPlotly({
       portafolio1 <- values[["df"]]
-      portafolio1 <- portafolio1 %>% filter(Fondos %in% fondos_industria & Porcentaje > 0)
-      values[["ci_pie"]] <- plot_ly(portafolio1, labels = ~Fondos, values = ~Porcentaje, type = 'pie', textinfo = 'label+percent',
-                   insidetextfont = list(color = '#FFFFFF'), marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
-        layout(hovermode = FALSE, title = '',xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+      if(!is.null(portafolio1)){
+        portafolio1 <- portafolio1 %>% filter(Fondos %in% fondos_industria & Porcentaje > 0)
+        values[["ci_pie"]] <- plot_ly(portafolio1, labels = ~Fondos, values = ~Porcentaje, type = 'pie', textinfo = 'label+percent',
+                     insidetextfont = list(color = '#FFFFFF'), marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
+          layout(hovermode = FALSE, title = '',xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                 yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+      }
     })
     
     output$segundopie <- renderPlotly({
       portafolio2 <- values[["df2"]]
-      portafolio2 <- portafolio2 %>% filter(Fondos %in% fondos_industria & Porcentaje > 0)
-      values[["otro_pie"]] <- plot_ly(portafolio2, labels = ~Fondos, values = ~Porcentaje, type = 'pie', textinfo = 'label+percent',
-                   insidetextfont = list(color = '#FFFFFF'), marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
-        layout(hovermode = FALSE, title = '',xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+      if(!is.null(portafolio2) & input$comparativo == TRUE){
+        portafolio2 <- portafolio2 %>% filter(Fondos %in% fondos_industria & Porcentaje > 0)
+        values[["otro_pie"]] <- plot_ly(portafolio2, labels = ~Fondos, values = ~Porcentaje, type = 'pie', textinfo = 'label+percent',
+                     insidetextfont = list(color = '#FFFFFF'), marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
+          layout(hovermode = FALSE, title = '',xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                 yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+      }
     })
     
     output$grafica <- renderPlotly({
-      rendimientos <- values[["rendimiento"]]
-      values[["grafica_rendimiento"]] <- plot_ly(rendimientos, x = ~Fecha, y = ~round(value,digits = 2), color = ~series, type = 'scatter', mode = 'lines',
-              linetype = ~series, connectgaps = TRUE) %>%
-        layout(hovermode = 'compare', title = '',xaxis = list(title = ''),
-               yaxis = list(title = '',tickformat = "$,3.2"))
-      
+      if(!is.null(rendimientos)){
+        rendimientos <- values[["rendimiento"]]
+        values[["grafica_rendimiento"]] <- plot_ly(rendimientos, x = ~Fecha, y = ~round(value,digits = 2), color = ~series, type = 'scatter', mode = 'lines',
+                linetype = ~series, connectgaps = TRUE) %>%
+          layout(hovermode = 'compare', title = '',xaxis = list(title = ''),
+                 yaxis = list(title = '',tickformat = "$,3.2"))
+      }
     })
     
     output$primerestadistica <- renderDataTable({
-      datatable(values[["estadisticas1"]],options = list(dom = 't', pageLength = 100))
-      
+      estadisticas1 <- values[["estadisticas1"]]
+      if(!is.null(estadisticas1)){
+        datatable(estadisticas1,options = list(dom = 't', pageLength = 100))
+      }
     })
     
     output$segundaestadistica <- renderDataTable({
-      datatable(values[["estadisticas2"]],options = list(dom = 't', pageLength = 100))
+      estadisticas2 <- values[["estadisticas2"]]
+      if(!is.null(estadisticas2)){
+        datatable(estadisticas2,options = list(dom = 't', pageLength = 100))
+      }
     })
+    
+    output$value <- renderText({ input$nombre })
     
   })
   
-  output$pdfcreator <- downloadHandler(
-    filename = function() {"comparativo.pdf"},
+  output$archivecreator <- downloadHandler(
+    filename = function() {"comparativo.html"},
     content = function(file) {
       tempReport <- file.path(tempdir(), "archivo.Rmd")
       file.copy("archivo.Rmd", tempReport, overwrite = TRUE)
-      params <- list(ci_portafolio = values$df,
+      params <- list(nombre = as.character(input$nombre),
+                     ci_portafolio = values$df,
                      otro_portafolio = values$df2,
                      grafica_rendimiento = values$grafica_rendimiento,
                      ci_summary = values$estadisticas1,
