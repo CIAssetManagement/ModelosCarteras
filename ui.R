@@ -25,21 +25,19 @@ shinyUI(fluidPage(
       br(),
       fluidRow(
         column(width = 6, h4("Portafolio de CI Estrategias")),
-        conditionalPanel(
-          condition = "input.comparativo == TRUE",
-          column(width = 6, h4("Portafolio Comparativo")))),
+        conditionalPanel(condition = "input.comparativo",column(width = 6, h4("Portafolio Comparativo")))),
       fluidRow(
         column(width = 6, rHandsontableOutput("primerportafolio")),
-        column(width = 6, rHandsontableOutput("segundoportafolio"))),
+        conditionalPanel(condition = "input.comparativo",column(width = 6, rHandsontableOutput("segundoportafolio")))),
       br(), br(),
       h3("Composición de los Portafolios"),
       br(),
       fluidRow(
         column(width = 6, h4("Portafolio de CI Estrategias")),
-        column(width = 6, h4("Portafolio Comparativo"))),
+        conditionalPanel(condition = "input.comparativo",column(width = 6, h4("Portafolio Comparativo")))),
       fluidRow(
         column(width = 6, plotlyOutput("primerpie")),
-        column(width = 6, plotlyOutput("segundopie"))),
+        conditionalPanel(condition = "input.comparativo",column(width = 6, plotlyOutput("segundopie")))),
       br(), br(),
       h3("Gráfica de Rendimientos"),
       br(),
@@ -49,9 +47,9 @@ shinyUI(fluidPage(
       br(),
       fluidRow(
         column(width = 6, h4("Portafolio de CI Estrategias")),
-        column(width = 6, h4("Portafolio Comparativo"))),
+        conditionalPanel(condition = "input.comparativo",column(width = 6, h4("Portafolio Comparativo")))),
       fluidRow(
         column(width = 6, dataTableOutput("primerestadistica")),
-        column(width = 6, dataTableOutput("segundaestadistica"))),
+        conditionalPanel(condition = "input.comparativo",column(width = 6, dataTableOutput("segundaestadistica")))),
       br(), br())
 )))

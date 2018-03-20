@@ -1,0 +1,14 @@
+---
+title: "Comparativo de Fondos"
+date: "al `r format(Sys.Date()-1, '%d de %B del %Y')`"
+output: html_document
+params:
+  nombre: NA
+  ci_portafolio: NA
+  otro_portafolio: NA
+  grafica_rendimiento: NA
+  ci_summary: NA
+  otro_summary: NA
+  ci_pie: NA
+  otro_pie: NA
+---

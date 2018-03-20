@@ -50,6 +50,11 @@ shinyServer(function(input, output) {
         colnames(estadisticas2) <- c("Estadísticas Mensuales")
         values[["estadisticas2"]] <- estadisticas2
         
+      } else {
+        
+        rendimientos <- rendimiento_portafolios(input$monto_inversion,portafolio1,NULL,input$rangofechas[1],input$rangofechas[2])
+        values[["rendimiento"]] <- data.frame(rendimientos)
+        
       }
     }
     
@@ -108,19 +113,38 @@ shinyServer(function(input, output) {
   })
   
   output$archivecreator <- downloadHandler(
+    
     filename = function() {"comparativo.html"},
-    content = function(file) {
-      tempReport <- file.path(tempdir(), "archivo.Rmd")
-      file.copy("archivo.Rmd", tempReport, overwrite = TRUE)
-      params <- list(nombre = as.character(input$nombre),
-                     ci_portafolio = values$df,
-                     otro_portafolio = values$df2,
-                     grafica_rendimiento = values$grafica_rendimiento,
-                     ci_summary = values$estadisticas1,
-                     otro_summary = values$estadisticas2,
-                     ci_pie = values$ci_pie,
-                     otro_pie = values$otro_pie)
+    
+    if(input$comparativo){
       
-      rmarkdown::render(tempReport, output_file = file,params = params, envir = new.env(parent = globalenv()))
-    })
+      content = function(file) {
+        tempReport <- file.path(tempdir(), "dos_portafolios.Rmd")
+        file.copy("dos_portafolios.Rmd", tempReport, overwrite = TRUE)
+        params <- list(nombre = as.character(input$nombre),
+                       ci_portafolio = values$df,
+                       otro_portafolio = values$df2,
+                       grafica_rendimiento = values$grafica_rendimiento,
+                       ci_summary = values$estadisticas1,
+                       otro_summary = values$estadisticas2,
+                       ci_pie = values$ci_pie,
+                       otro_pie = values$otro_pie)
+        
+        rmarkdown::render(tempReport, output_file = file,params = params, envir = new.env(parent = globalenv()))}
+      
+    } else {
+      
+      content = function(file) {
+        tempReport <- file.path(tempdir(), "un_portafolio.Rmd")
+        file.copy("un_portafolio.Rmd", tempReport, overwrite = TRUE)
+        params <- list(nombre = as.character(input$nombre),
+                       ci_portafolio = values$df,
+                       grafica_rendimiento = values$grafica_rendimiento,
+                       ci_summary = values$estadisticas1,
+                       ci_pie = values$ci_pie)
+        
+        rmarkdown::render(tempReport, output_file = file,params = params, envir = new.env(parent = globalenv()))}
+      
+    }
+    )
 })
