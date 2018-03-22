@@ -4,6 +4,7 @@ date: "al `r format(Sys.Date()-1, '%d de %B del %Y')`"
 output: html_document
 params:
   nombre: NA
+  perfil: NA
   ci_portafolio: NA
   otro_portafolio: NA
   grafica_rendimiento: NA
@@ -12,3 +13,18 @@ params:
   ci_pie: NA
   otro_pie: NA
 ---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(webshot)
+library(knitr)
+library(kableExtra)
+nombre <- params$nombre
+```
+
+---
+
+<span style="font-size: 1.25em;">Fondo propuesto por **Estrategias de CI Banco** para: **`r nombre`**</span>
+
+---
+

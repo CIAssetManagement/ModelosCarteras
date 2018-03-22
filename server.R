@@ -35,19 +35,24 @@ shinyServer(function(input, output) {
     portafolio2 <- values[["df2"]]
     if(!is.null(portafolio1)){
       
-      estadisticas1 <- estadisticas_portafolios(portafolio1,input$rangofechas[1],input$rangofechas[2])
-      estadisticas1 <- data.frame(estadisticas1, row.names = c("Mínimo","Máximo","Promedio","Volatilidad","Sortino"))
-      colnames(estadisticas1) <- c("Estadísticas Mensuales")
+      estadisticas1 <- estadisticas_portafolios(input$monto_inversion,portafolio1,input$rangofechas[1],input$rangofechas[2])
+      estadisticas1 <- data.frame(estadisticas1,row.names = c("Mes Mínimo","Mes Máximo","Mes Promedio","Saldo Inicial","Saldo Final"))
+      colnames(estadisticas1) <- c("Estadísticas")
       values[["estadisticas1"]] <- estadisticas1
       
+      #Rendimientos en diferentes divisas
+      rendimiento1 <- rend_divisas(portafolio1,input$rangofechas[1],input$rangofechas[2])
+      values[["rendimiento1"]] <- data.frame(Rendimientos = rendimiento1,row.names = c("Efectivo pesos", "Anualizado pesos","Efectivo dólares", "Anualizado dólares",
+                                                                                       "Efectivo euros", "Anualizado euros", "Efectivo portafolio", "Anualizado portafolio"))
+
       if(!is.null(portafolio2) & input$comparativo == TRUE){
         
         rendimientos <- rendimiento_portafolios(input$monto_inversion,portafolio1,portafolio2,input$rangofechas[1],input$rangofechas[2])
         values[["rendimiento"]] <- data.frame(rendimientos)
         
-        estadisticas2 <- estadisticas_portafolios(portafolio2,input$rangofechas[1],input$rangofechas[2])
-        estadisticas2 <- data.frame(estadisticas2, row.names = c("Mínimo","Máximo","Promedio","Volatilidad","Sortino"))
-        colnames(estadisticas2) <- c("Estadísticas Mensuales")
+        estadisticas2 <- estadisticas_portafolios(input$monto_inversion,portafolio2,input$rangofechas[1],input$rangofechas[2])
+        estadisticas2 <- data.frame(estadisticas2,row.names = c("Mes Mínimo","Mes Máximo","Mes Promedio","Saldo Inicial","Saldo Final"))
+        colnames(estadisticas2) <- c("Estadísticas")
         values[["estadisticas2"]] <- estadisticas2
         
       } else {
@@ -72,11 +77,21 @@ shinyServer(function(input, output) {
         hot_col("Porcentaje", format = "0%")
     })
     
+    output$primer100 <- reactive({
+      portafolio1 <- values[["df"]]
+      ifelse(sum(portafolio1$Porcentaje) == 1,"","El porcentaje no suma 100%")
+    })
+    
+    output$segundo100 <- reactive({
+      portafolio2 <- values[["df2"]]
+      ifelse(sum(portafolio2$Porcentaje) == 1,"","El porcentaje no suma 100%")
+    })
+    
     output$primerpie <- renderPlotly({
       portafolio1 <- values[["df"]]
       portafolio1 <- portafolio1 %>% filter(Fondos %in% fondos_industria & Porcentaje > 0)
       values[["ci_pie"]] <- plot_ly(portafolio1, labels = ~Fondos, values = ~Porcentaje, type = 'pie', textinfo = 'label+percent',
-                   insidetextfont = list(color = '#FFFFFF'), marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
+                                    textposition = "outside", marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
         layout(hovermode = FALSE, title = '',xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
     })
@@ -85,7 +100,7 @@ shinyServer(function(input, output) {
       portafolio2 <- values[["df2"]]
       portafolio2 <- portafolio2 %>% filter(Fondos %in% fondos_industria & Porcentaje > 0)
       values[["otro_pie"]] <- plot_ly(portafolio2, labels = ~Fondos, values = ~Porcentaje, type = 'pie', textinfo = 'label+percent',
-                   insidetextfont = list(color = '#FFFFFF'), marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
+                                      textposition = "outside", marker = list(line = list(color = '#FFFFFF', width = 1))) %>%
         layout(hovermode = FALSE, title = '',xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
     })
@@ -108,6 +123,11 @@ shinyServer(function(input, output) {
       datatable(estadisticas2,options = list(dom = 't', pageLength = 100))
     })
     
+    output$primerrendimiento <- renderDataTable({
+      rendimiento1 <- values[["rendimiento1"]]
+      datatable(rendimiento1,options = list(dom = 't', pageLength = 100))
+    })
+    
     output$value <- renderText({ input$nombre })
     
   })
@@ -121,7 +141,11 @@ shinyServer(function(input, output) {
       content = function(file) {
         tempReport <- file.path(tempdir(), "dos_portafolios.Rmd")
         file.copy("dos_portafolios.Rmd", tempReport, overwrite = TRUE)
-        params <- list(nombre = as.character(input$nombre),
+        params <- list(inicio = input$rangofechas[1],
+                       fin = input$rangofechas[2],
+                       promotor = as.character(input$promotor),
+                       nombre = as.character(input$nombre),
+                       perfil = as.character(input$perfil_inversion),
                        ci_portafolio = values$df,
                        otro_portafolio = values$df2,
                        grafica_rendimiento = values$grafica_rendimiento,
@@ -137,7 +161,12 @@ shinyServer(function(input, output) {
       content = function(file) {
         tempReport <- file.path(tempdir(), "un_portafolio.Rmd")
         file.copy("un_portafolio.Rmd", tempReport, overwrite = TRUE)
-        params <- list(nombre = as.character(input$nombre),
+        params <- list(inicio = input$rangofechas[1],
+                       fin = input$rangofechas[2],
+                       promotor = as.character(input$promotor),
+                       nombre = as.character(input$nombre),
+                       perfil = as.character(input$perfil_inversion),
+                       mxpusdeur = values$rendimiento1,
                        ci_portafolio = values$df,
                        grafica_rendimiento = values$grafica_rendimiento,
                        ci_summary = values$estadisticas1,
@@ -145,6 +174,5 @@ shinyServer(function(input, output) {
         
         rmarkdown::render(tempReport, output_file = file,params = params, envir = new.env(parent = globalenv()))}
       
-    }
-    )
+    })
 })

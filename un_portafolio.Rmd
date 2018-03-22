@@ -1,9 +1,13 @@
 ---
 title: "Propuesta de Portafolio"
-date: "al `r format(Sys.Date()-1, '%d de %B del %Y')`"
 output: html_document
 params:
+  inicio: NA
+  fin: NA
+  promotor: NA
   nombre: NA
+  perfil: NA
+  mxpusdeur: NA
   ci_portafolio: NA
   grafica_rendimiento: NA
   ci_summary: NA
@@ -18,58 +22,46 @@ library(kableExtra)
 nombre <- params$nombre
 ```
 
----
+<br>
 
-<span style="font-size: 1.25em;">Fondo propuesto por **Estrategias de CI Banco** para: **`r nombre`**</span>
+<span style="font-size: 1.25em;">Portafolio propuesto por **`r params$promotor`** para **`r params$nombre`**</span>
 
----
+<br>
 
 ```{r, fig.show='hold', fig.height = 3, fig.width = 5}
 #Posiciones de los portafolios
 p1 <- params$ci_portafolio
 p2 <- params$otro_portafolio
-p1 <- p1[order(-p1$Porcentaje),]
-p2 <- p2[order(-p1$Porcentaje),]
 fixed_percent1 <- sum(p1$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, FALSE)])
 fixed_percent2 <- sum(p2$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, FALSE)])
-p1$Porcentaje <- paste0(p1$Porcentaje*100,"%")
-p2$Porcentaje <- paste0(p2$Porcentaje*100,"%")
 
-p1 %>%
-  filter(Porcentaje > 0) %>%
-  kable(booktabs = TRUE, format = "html", align <- c("l","r")) %>%
-  kable_styling(position = "float_right", full_width = FALSE)
+params$ci_summary %>%
+  kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
+  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 15) %>%
+  column_spec(1, bold = TRUE)
 
 params$ci_pie
 
 ```
 
+<br>
+
+<span style="font-size: 1.25em;">Se propone un portafolio compuesto de `r paste0(fixed_percent1*100,"%")` **deuda** y `r paste0((1-fixed_percent1)*100,"%")` de **renta variable** para un perfil **`r tolower(params$perfil)`**.</span>
+
 ---
 
-<span style="font-size: 1.25em;">Se propone un portafolio compuesto de `r paste0(fixed_percent1*100,"%")` *renta fija* y `r paste0((1-fixed_percent1)*100,"%")` de *renta variable*.</span>
+<span style="font-size: 1.25em;">Rendimientos de la propuesta</span>
+
+del `r format(params$inicio, '%d de %B del %Y')` al `r format(params$fin, '%d de %B del %Y')`
 
 
-```{r}
-params$ci_summary %>%
+```{r, fig.show='hold', fig.height = 3.5, fig.width = 5}
+
+params$mxpusdeur %>%
   kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
-  kable_styling(latex_options = c("striped", "scale_down")) %>%
+  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 12) %>%
   column_spec(1, bold = TRUE)
 
-```
-
-
-```{r}
-
-# p2 %>%
-#   filter(Porcentaje > 0) %>%
-#   kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
-#   kable_styling(latex_options = c("striped", "scale_down")) %>%
-#   column_spec(1, bold = TRUE)
-
-# params$otro_summary %>%
-#   kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
-#   kable_styling(latex_options = c("striped", "scale_down")) %>%
-#   column_spec(1, bold = TRUE)
+params$grafica_rendimiento
 
 ```
-
