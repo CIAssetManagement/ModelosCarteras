@@ -3,6 +3,9 @@ title: "Comparativo de Fondos"
 date: "al `r format(Sys.Date()-1, '%d de %B del %Y')`"
 output: html_document
 params:
+  inicio: NA
+  fin: NA
+  promotor: NA
   nombre: NA
   perfil: NA
   ci_portafolio: NA
