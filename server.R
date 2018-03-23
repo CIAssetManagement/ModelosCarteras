@@ -79,7 +79,7 @@ shinyServer(function(input, output) {
     
     output$primer100 <- reactive({
       portafolio1 <- values[["df"]]
-      ifelse(sum(portafolio1$Porcentaje) == 1,"","El porcentaje no suma 100%")
+      ifelse(sum(portafolio1$Porcentaje) == 1,"","El porcentaje no suma 100% ")
     })
     
     output$segundo100 <- reactive({
@@ -132,47 +132,47 @@ shinyServer(function(input, output) {
     
   })
   
-  output$archivecreator <- downloadHandler(
+  output$portafolio1 <- downloadHandler(
     
+    filename = function() {"propuesta.html"},
+    
+    content = function(file) {
+      tempReport2 <- file.path(tempdir(), "un_portafolio.Rmd")
+      file.copy("un_portafolio.Rmd", tempReport2, overwrite = TRUE)
+      params2 <- list(inicio = input$rangofechas[1],
+                      fin = input$rangofechas[2],
+                      promotor = as.character(input$promotor),
+                      nombre = as.character(input$nombre),
+                      perfil = as.character(input$perfil_inversion),
+                      mxpusdeur = values$rendimiento1,
+                      ci_portafolio = values$df,
+                      grafica_rendimiento = values$grafica_rendimiento,
+                      ci_summary = values$estadisticas1,
+                      ci_pie = values$ci_pie)
+      rmarkdown::render(tempReport2, output_file = file,params = params2, envir = new.env(parent = globalenv()))
+  })
+  
+  output$portafolio2 <- downloadHandler(
+      
     filename = function() {"comparativo.html"},
     
-    if(input$comparativo){
+    content = function(file) {
       
-      content = function(file) {
-        tempReport <- file.path(tempdir(), "dos_portafolios.Rmd")
-        file.copy("dos_portafolios.Rmd", tempReport, overwrite = TRUE)
-        params <- list(inicio = input$rangofechas[1],
-                       fin = input$rangofechas[2],
-                       promotor = as.character(input$promotor),
-                       nombre = as.character(input$nombre),
-                       perfil = as.character(input$perfil_inversion),
-                       ci_portafolio = values$df,
-                       otro_portafolio = values$df2,
-                       grafica_rendimiento = values$grafica_rendimiento,
-                       ci_summary = values$estadisticas1,
-                       otro_summary = values$estadisticas2,
-                       ci_pie = values$ci_pie,
-                       otro_pie = values$otro_pie)
-        
-        rmarkdown::render(tempReport, output_file = file,params = params, envir = new.env(parent = globalenv()))}
-      
-    } else {
-      
-      content = function(file) {
-        tempReport <- file.path(tempdir(), "un_portafolio.Rmd")
-        file.copy("un_portafolio.Rmd", tempReport, overwrite = TRUE)
-        params <- list(inicio = input$rangofechas[1],
-                       fin = input$rangofechas[2],
-                       promotor = as.character(input$promotor),
-                       nombre = as.character(input$nombre),
-                       perfil = as.character(input$perfil_inversion),
-                       mxpusdeur = values$rendimiento1,
-                       ci_portafolio = values$df,
-                       grafica_rendimiento = values$grafica_rendimiento,
-                       ci_summary = values$estadisticas1,
-                       ci_pie = values$ci_pie)
-        
-        rmarkdown::render(tempReport, output_file = file,params = params, envir = new.env(parent = globalenv()))}
-      
-    })
+      tempReport1 <- file.path(tempdir(), "dos_portafolios.Rmd")
+      file.copy("dos_portafolios.Rmd", tempReport1, overwrite = TRUE)
+      params1 <- list(inicio = input$rangofechas[1],
+                     fin = input$rangofechas[2],
+                     promotor = as.character(input$promotor),
+                     nombre = as.character(input$nombre),
+                     perfil = as.character(input$perfil_inversion),
+                     ci_portafolio = values$df,
+                     otro_portafolio = values$df2,
+                     grafica_rendimiento = values$grafica_rendimiento,
+                     ci_summary = values$estadisticas1,
+                     otro_summary = values$estadisticas2,
+                     ci_pie = values$ci_pie,
+                     otro_pie = values$otro_pie)
+      rmarkdown::render(tempReport1, output_file = file,params = params1, envir = new.env(parent = globalenv()))
+  })
+
 })

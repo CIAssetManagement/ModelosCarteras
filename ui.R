@@ -29,7 +29,8 @@ shinyUI(fluidPage(
       wellPanel(h4("¿Quieres realizar un comparativo de fondos?"),checkboxInput("comparativo", "Sí", FALSE)),
       wellPanel(dateRangeInput('rangofechas',label = 'Rango de fechas para el comparativo',start = Sys.Date()-253, 
                      end = Sys.Date()-1,language = "es",separator = "a")),
-      wellPanel(downloadButton("archivecreator", "Generar archivo"))),
+      wellPanel(conditionalPanel(condition = "!input.comparativo",downloadButton("portafolio1", "Generar propuesta")),
+                conditionalPanel(condition = "input.comparativo",downloadButton("portafolio2", "Generar comparativo")))),
     
     mainPanel(
       h3("Portafolios"),

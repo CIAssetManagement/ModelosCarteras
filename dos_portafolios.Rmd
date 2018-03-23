@@ -1,6 +1,5 @@
 ---
-title: "Comparativo de Fondos"
-date: "al `r format(Sys.Date()-1, '%d de %B del %Y')`"
+title: "Comparativo de Portafolios"
 output: html_document
 params:
   inicio: NA
@@ -18,16 +17,69 @@ params:
 ---
 
 ```{r, include = FALSE}
+
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(webshot)
 library(knitr)
 library(kableExtra)
-nombre <- params$nombre
+
 ```
 
+<br>
+
+#### Portafolio propuesto por **`r params$promotor`** para **`r params$nombre`**
+
+```{r, fig.show='hold', fig.height = 3, fig.width = 5}
+
+#Posiciones de los portafolios
+p1 <- params$ci_portafolio
+p2 <- params$otro_portafolio
+fixed_percent1 <- sum(p1$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, FALSE)])
+fixed_percent2 <- sum(p2$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, FALSE)])
+
+params$ci_summary %>%
+  kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
+  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 15) %>%
+  column_spec(1, bold = TRUE)
+
+params$ci_pie
+
+```
+
+<br>
+
+#### Se propone un portafolio compuesto de `r paste0(fixed_percent1*100,"%")` **deuda** y `r paste0((1-fixed_percent1)*100,"%")` de **renta variable** para un perfil **`r tolower(params$perfil)`**.
+
 ---
 
-<span style="font-size: 1.25em;">Fondo propuesto por **Estrategias de CI Banco** para: **`r nombre`**</span>
+#### Otro portafolio:
+
+```{r, fig.show='hold', fig.height = 3, fig.width = 5}
+
+params$otro_summary %>%
+  kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
+  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 15) %>%
+  column_spec(1, bold = TRUE)
+
+params$otro_pie
+
+```
+
+<br>
+
+#### Consta de `r paste0(fixed_percent2*100,"%")` **deuda** y `r paste0((1-fixed_percent2)*100,"%")` **renta variable** para un perfil **`r tolower(params$perfil)`**.
 
 ---
+
+<br>
+
+#### Rendimientos de ambos portafolios
+
+#### del `r format(params$inicio, '%d de %B del %Y')` al `r format(params$fin, '%d de %B del %Y')`
+
+```{r}
+
+params$grafica_rendimiento
+
+```
 

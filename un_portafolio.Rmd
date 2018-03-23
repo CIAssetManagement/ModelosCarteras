@@ -15,16 +15,17 @@ params:
 ---
 
 ```{r, include = FALSE}
+
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(webshot)
 library(knitr)
 library(kableExtra)
-nombre <- params$nombre
+
 ```
 
 <br>
 
-<span style="font-size: 1.25em;">Portafolio propuesto por **`r params$promotor`** para **`r params$nombre`**</span>
+#### Portafolio propuesto por **`r params$promotor`** para **`r params$nombre`**
 
 <br>
 
@@ -46,13 +47,13 @@ params$ci_pie
 
 <br>
 
-<span style="font-size: 1.25em;">Se propone un portafolio compuesto de `r paste0(fixed_percent1*100,"%")` **deuda** y `r paste0((1-fixed_percent1)*100,"%")` de **renta variable** para un perfil **`r tolower(params$perfil)`**.</span>
+#### Se propone un portafolio compuesto de `r paste0(fixed_percent1*100,"%")` **deuda** y `r paste0((1-fixed_percent1)*100,"%")` de **renta variable** para un perfil **`r tolower(params$perfil)`**.
 
 ---
 
-<span style="font-size: 1.25em;">Rendimientos de la propuesta</span>
+#### Rendimientos de la propuesta
 
-del `r format(params$inicio, '%d de %B del %Y')` al `r format(params$fin, '%d de %B del %Y')`
+#### del `r format(params$inicio, '%d de %B del %Y')` al `r format(params$fin, '%d de %B del %Y')`
 
 
 ```{r, fig.show='hold', fig.height = 3.5, fig.width = 5}

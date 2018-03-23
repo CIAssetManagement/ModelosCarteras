@@ -6,11 +6,13 @@ library(plotly)
 library(dplyr)
 library(tidyr)
 library(reshape2)
+library(lpSolveAPI)
 options(scipen=999)
 
 #Datos
 precios <- read.csv("precios.csv",stringsAsFactors = FALSE)
 precios$X <-  NULL
+limites_lp <- read.csv("limites_lp.csv",stringsAsFactors = FALSE)
 fondos_industria <- unique(precios$id)
 fondos_propios <- c("51-+CIGUB-A","51-+CIGUMP-A","51-+CIGULP-A","51-+CIPLUS-A","52-+CIBOLS-A",
             "52-+CIEQUS-A","51-+CIUSD-A","52-NAVIGTR-A","52-AXESEDM-A","52-CRECE+-A")
@@ -21,6 +23,33 @@ df2 <- data.frame(Fondos=c("51-+CIGUB-A",rep("",length(fondos_propios)-1)),
                   Porcentaje=c(1,rep(0,length(fondos_propios)-1)),stringsAsFactors = FALSE)
 
 #Funciones
+porcentajes_optimos <- function(perfil,portafolio){
+  
+  prices <- precios[precios$id %in% portafolio$Fondos,] %>%
+    mutate(fecha = as.Date(fecha)) %>%
+    spread(id, Precio_sucio) %>%
+    filter(fecha %in% c(fecha_inicio,fecha_fin)) %>%
+    data.frame(check.names = FALSE)
+  
+  returns <- data.frame(Fondos = t(100*(prices[2,-1]/prices[1,-1]-1)),
+                        Limites=limites_lp[,which(colnames(limites_lp) == perfil)])
+  
+  #Modelo lineal
+  modelo_pl <- make.lp(0,length(returns$Limites))
+  lp.control(modelo_pl,sense='max')
+  dummy <- length(returns$Limites)
+  for(i in seq(1,length(returns$Limites),1)){
+    add.constraint(modelo_pl, xt = 1, type = 1, indices = i, rhs = returns$Limites[i])
+    dummy <- dummy + length(returns$Limites)
+  }
+  add.constraint(modelo_pl, xt = rep(1,length(returns$Limites)), type = 3, indices = seq(1,length(returns$Limites)), rhs = 1)
+  set.objfn(modelo_pl, returns$X2)
+  solve(modelo_pl)
+  porcentajes <- get.variables(modelo_pl)
+  
+  return(porcentajes)
+}
+
 rendimiento_portafolios <- function(monto,p1,p2,fecha_inicio,fecha_fin){
   #¿Hay algo en el portafolio 2?
   indices_2 <- unique(p2$Fondos %in% fondos_industria)
