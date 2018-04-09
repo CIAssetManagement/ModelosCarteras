@@ -1,2 +1,2 @@
 # ModelosCarteras
-App that compares funds or portfolios of funds
+App to compare our portfolios of funds with others or with benchmarks.
