@@ -19,7 +19,9 @@ shinyUI(fluidPage(
       br(),
       "6. Elegir el rango de fechas.",
       br(),
-      "7. Generar archivo.",
+      "7. Iniciar el cálculo interactivo",
+      br(),
+      "8. Generar archivo.",
       br(), br(),
       wellPanel(h4("Nombre del Promotor"),textInput("promotor","","")),
       wellPanel(h4("Nombre del Cliente"),textInput("nombre","","")),
@@ -27,10 +29,11 @@ shinyUI(fluidPage(
       wellPanel(h4("Perfil del Cliente"),selectInput("perfil_inversion","",c("Conservador", "Moderado","Agresivo"),
                                                    "Conservador")),
       wellPanel(h4("¿Quieres realizar un comparativo de fondos?"),checkboxInput("comparativo", "Sí", FALSE)),
-      wellPanel(dateRangeInput('rangofechas',label = 'Rango de fechas para el comparativo',start = Sys.Date()-253, 
-                     end = Sys.Date()-1,language = "es",separator = "a")),
-      wellPanel(conditionalPanel(condition = "!input.comparativo",downloadButton("portafolio1", "Generar propuesta")),
-                conditionalPanel(condition = "input.comparativo",downloadButton("portafolio2", "Generar comparativo")))),
+      wellPanel(dateRangeInput('rangofechas',label = 'Rango de fechas para el comparativo',start = diah(Sys.Date()-180), 
+                     end = diah(Sys.Date()-1),language = "es",separator = "a")),
+      wellPanel(h4("Iniciar el cálculo"),actionButton("calcular", "Iniciar")),
+      wellPanel(conditionalPanel(condition = "!input.comparativo",downloadButton("portafolios1", "Generar propuesta")),
+                conditionalPanel(condition = "input.comparativo",downloadButton("portafolios2", "Generar comparativo")))),
     
     mainPanel(
       h3("Portafolios"),
@@ -71,7 +74,7 @@ shinyUI(fluidPage(
       br(),
       fluidRow(
         column(width = 6, h4("Portafolio de CI Estrategias")),
-        column(width = 6, h4("Portafolio Comparativo"))
+        conditionalPanel(condition = "input.comparativo",column(width = 6, h4("Portafolio Comparativo")))
       ),
       fluidRow(
         column(width = 6,dataTableOutput("primerrendimiento")),

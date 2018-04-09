@@ -3,5 +3,6 @@
 .RData
 .Ruserdata
 carteras.csv
-tasa.csv
+festivos.csv
+limites_lp.csv
 precios.csv

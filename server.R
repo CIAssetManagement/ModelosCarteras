@@ -28,65 +28,50 @@ shinyServer(function(input, output) {
     values[["df2"]] <- df2  
   })
   
-  observe({
-    
-    values[["fecha"]] <- input$rangofechas[2]
-    portafolio1 <- values[["df"]]
-    portafolio2 <- values[["df2"]]
-    if(!is.null(portafolio1)){
-      
-      estadisticas1 <- estadisticas_portafolios(input$monto_inversion,portafolio1,input$rangofechas[1],input$rangofechas[2])
-      estadisticas1 <- data.frame(estadisticas1,row.names = c("Mes Mínimo","Mes Máximo","Mes Promedio","Saldo Inicial","Saldo Final"))
-      colnames(estadisticas1) <- c("Estadísticas")
-      values[["estadisticas1"]] <- estadisticas1
-      
-      #Rendimientos en diferentes divisas
-      rendimiento1 <- rend_divisas(portafolio1,input$rangofechas[1],input$rangofechas[2])
-      values[["rendimiento1"]] <- data.frame(Rendimientos = rendimiento1,row.names = c("Efectivo pesos", "Anualizado pesos","Efectivo dólares", "Anualizado dólares",
-                                                                                       "Efectivo euros", "Anualizado euros", "Efectivo portafolio", "Anualizado portafolio"))
+  observeEvent(input$perfil_inversion, {
 
-      if(!is.null(portafolio2) & input$comparativo == TRUE){
-        
-        rendimientos <- rendimiento_portafolios(input$monto_inversion,portafolio1,portafolio2,input$rangofechas[1],input$rangofechas[2])
-        values[["rendimiento"]] <- data.frame(rendimientos)
-        
-        estadisticas2 <- estadisticas_portafolios(input$monto_inversion,portafolio2,input$rangofechas[1],input$rangofechas[2])
-        estadisticas2 <- data.frame(estadisticas2,row.names = c("Mes Mínimo","Mes Máximo","Mes Promedio","Saldo Inicial","Saldo Final"))
-        colnames(estadisticas2) <- c("Estadísticas")
-        values[["estadisticas2"]] <- estadisticas2
-        
-      } else {
-        
-        rendimientos <- rendimiento_portafolios(input$monto_inversion,portafolio1,NULL,input$rangofechas[1],input$rangofechas[2])
-        values[["rendimiento"]] <- data.frame(rendimientos)
-        
-      }
-    }
+    portafolio1 <- values[["df"]]
+    portafolio1$Porcentaje <- porcentajes_optimos(input$perfil_inversion, portafolio1,
+                                                  input$rangofechas[1], input$rangofechas[2])
+    values[["df"]] <- portafolio1
+
+  })
+  
+  observeEvent(input$monto_inversion, {
+
+    monto <- input$monto_inversion
+    portafolio1 <- values[["df"]]
+    portafolio1$Fondos <- seriesfondos(monto,portafolio1)
+    values[["df"]] <- portafolio1
+
+  })
+  
+  observeEvent(input$calcular,{
     
     output$primerportafolio <- renderRHandsontable({
       df <- values[["df"]]
       rhandsontable(df, rowHeaders = NULL, stretchH = "all") %>%
         hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
-        hot_col("Porcentaje", format = "0%")
+        hot_col("Porcentaje", format = "0.0%")
     })
     
     output$segundoportafolio <- renderRHandsontable({
       df2 <- values[["df2"]]
       rhandsontable(df2, rowHeaders = NULL, stretchH = "all") %>%
         hot_col("Fondos", type = "dropdown", source = fondos_industria,strict = FALSE) %>%
-        hot_col("Porcentaje", format = "0%")
+        hot_col("Porcentaje", format = "0.0%")
     })
     
     output$primer100 <- reactive({
       portafolio1 <- values[["df"]]
-      ifelse(sum(portafolio1$Porcentaje) == 1,"","El porcentaje no suma 100% ")
+      ifelse(as.character(sum(portafolio1$Porcentaje)) == "1","","El porcentaje no suma 100% ")
     })
     
     output$segundo100 <- reactive({
       portafolio2 <- values[["df2"]]
-      ifelse(sum(portafolio2$Porcentaje) == 1,"","El porcentaje no suma 100%")
+      ifelse(as.character(sum(portafolio2$Porcentaje)) == "1","","El porcentaje no suma 100%")
     })
-    
+
     output$primerpie <- renderPlotly({
       portafolio1 <- values[["df"]]
       portafolio1 <- portafolio1 %>% filter(Fondos %in% fondos_industria & Porcentaje > 0)
@@ -106,7 +91,15 @@ shinyServer(function(input, output) {
     })
     
     output$grafica <- renderPlotly({
-      rendimientos <- values[["rendimiento"]]
+      portafolio1 <- values[["df"]]
+      portafolio2 <- values[["df2"]]
+      if(input$comparativo){
+        rendimientos <- data.frame(rendimiento_portafolios(input$monto_inversion,portafolio1,portafolio2,input$rangofechas[1],input$rangofechas[2]))
+        values[["rendimiento"]] <- rendimientos
+      } else {
+        rendimientos <- data.frame(rendimiento_portafolios(input$monto_inversion,portafolio1,NULL,input$rangofechas[1],input$rangofechas[2]))
+        values[["rendimiento"]] <- rendimientos
+      }
       values[["grafica_rendimiento"]] <- plot_ly(rendimientos, x = ~Fecha, y = ~round(value,digits = 2), color = ~series, type = 'scatter', mode = 'lines',
               linetype = ~series, connectgaps = TRUE) %>%
         layout(hovermode = 'compare', title = '',xaxis = list(title = ''),
@@ -114,25 +107,36 @@ shinyServer(function(input, output) {
     })
     
     output$primerestadistica <- renderDataTable({
-      estadisticas1 <- values[["estadisticas1"]]
+      portafolio1 <- values[["df"]]
+      estadisticas1 <- estadisticas_portafolios(1,input$monto_inversion,portafolio1,input$rangofechas[1],input$rangofechas[2])
+      estadisticas1 <- data.frame(estadisticas1,row.names = c("Mes Mínimo","Mes Máximo","Mes Promedio","Saldo Inicial","Saldo Final"))
+      colnames(estadisticas1) <- c("Estadísticas")
+      values[["estadisticas1"]] <- estadisticas1
       datatable(estadisticas1,options = list(dom = 't', pageLength = 100))
     })
     
     output$segundaestadistica <- renderDataTable({
-      estadisticas2 <- values[["estadisticas2"]]
+      portafolio2 <- values[["df2"]]
+      estadisticas2 <- estadisticas_portafolios(2,input$monto_inversion,portafolio2,input$rangofechas[1],input$rangofechas[2])
+      estadisticas2 <- data.frame(estadisticas2,row.names = c("Mes Mínimo","Mes Máximo","Mes Promedio","Saldo Inicial","Saldo Final"))
+      colnames(estadisticas2) <- c("Estadísticas")
+      values[["estadisticas2"]] <- estadisticas2
       datatable(estadisticas2,options = list(dom = 't', pageLength = 100))
     })
     
     output$primerrendimiento <- renderDataTable({
-      rendimiento1 <- values[["rendimiento1"]]
+      portafolio1 <- values[["df"]]
+      #Rendimientos en diferentes divisas
+      rendimiento1 <- rend_divisas(input$monto_inversion,portafolio1,input$rangofechas[1],input$rangofechas[2])
+      rendimiento1 <- data.frame(Rendimientos = rendimiento1,row.names = c("Efectivo pesos", "Anualizado pesos","Efectivo dólares", "Anualizado dólares",
+                                                                                       "Efectivo euros", "Anualizado euros", "Efectivo portafolio", "Anualizado portafolio"))
+      values[["rendimiento1"]] <- rendimiento1
       datatable(rendimiento1,options = list(dom = 't', pageLength = 100))
     })
     
-    output$value <- renderText({ input$nombre })
-    
   })
   
-  output$portafolio1 <- downloadHandler(
+  output$portafolios1 <- downloadHandler(
     
     filename = function() {"propuesta.html"},
     
@@ -152,7 +156,7 @@ shinyServer(function(input, output) {
       rmarkdown::render(tempReport2, output_file = file,params = params2, envir = new.env(parent = globalenv()))
   })
   
-  output$portafolio2 <- downloadHandler(
+  output$portafolios2 <- downloadHandler(
       
     filename = function() {"comparativo.html"},
     
