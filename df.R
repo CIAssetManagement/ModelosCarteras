@@ -119,11 +119,6 @@ rendimiento_instrumentos <- function(monto,portafolio,pesos,fecha_inicio,fecha_f
   if(length(colnames(prices)) > 2){
     returns <- data.frame(matrix(unlist(apply(prices[,-1], 1, function(x) x/prices[1,-1] )),
                                  ncol = length(colnames(prices))-1,byrow = TRUE))
-    
-    print(portafolio)
-    print(head(prices))
-    
-    
     returns <- sweep(returns,2,pesos,`*`)
     indices <- colSums(returns,na.rm = TRUE) == 0
     returns[,indices] <-  ifelse(is.na(returns[,indices]) == TRUE, 0, returns[,indices])
