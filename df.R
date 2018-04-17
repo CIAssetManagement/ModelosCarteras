@@ -49,13 +49,12 @@ seriesfondos <- function(monto,portafolio){
   tv <- as.character(lapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][1]))
   fondos <- as.character(lapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2]))
   tipos <- substr(fondos,2,2)
-  tipos[fondos == "+CIPLUS"] <- "BF"
-  portafolio1 <- portafolio[tipos %in% c("C","BF","X"),]
+  portafolio1 <- portafolio[tipos %in% c("C","X"),]
   montos <- monto*portafolio1$Porcentaje
-  tiposerie <- tipos[tipos %in% c("C","BF","X")]
+  tiposerie <- tipos[tipos %in% c("C","X")]
   series <- mapply(serie,montos,ifelse(tiposerie == "X","F",tiposerie))
-  fondosportafolio <- paste0(tv[tipos %in% c("C","BF","X")],"-",fondos[tipos %in% c("C","BF","X")],"-",series)
-  fondosportafolio <- c(fondosportafolio,portafolio$Fondos[!(tipos %in% c("C","BF","X"))])
+  fondosportafolio <- paste0(tv[tipos %in% c("C","X")],"-",fondos[tipos %in% c("C","X")],"-",series)
+  fondosportafolio <- c(fondosportafolio,portafolio$Fondos[!(tipos %in% c("C","X"))])
   return(fondosportafolio)
 }
 
@@ -121,7 +120,9 @@ rendimiento_instrumentos <- function(monto,portafolio,pesos,fecha_inicio,fecha_f
                                  ncol = length(colnames(prices))-1,byrow = TRUE))
     returns <- sweep(returns,2,pesos,`*`)
     indices <- colSums(returns,na.rm = TRUE) == 0
-    returns[,indices] <-  ifelse(is.na(returns[,indices]) == TRUE, 0, returns[,indices])
+    if(TRUE %in% unique(is.na(returns[,indices]) == TRUE))
+      returns[,indices] <- data.frame(matrix(0,nrow = length(returns[,1]),ncol = sum(indices == TRUE)))
+      
     retornos <- rowSums(returns)
   } else {
     retornos <- prices[,-1]/prices[1,-1]
@@ -138,7 +139,9 @@ rendimiento_dolareseuros <- function(tipo,monto,portafolio,pesos,fecha_inicio,fe
     filter(fecha %in% sapply(seq(fecha_inicio-5,fecha_fin,by = "1 day"),diah)) %>%
     data.frame(check.names = FALSE)
   
-  pesos <- pesos[order(portafolio$Fondos)]
+  #En este orden o el deploy no funciona
+  if(tipo == "dolares")
+    pesos <- pesos[order(c("+CIUSD","+CIEQUS","NAVIGTR"))]
   
   moneda_extranjera <- prices[-length(prices$fecha),sort(fondos)[1]]
   fecha <- prices$fecha[-1]
@@ -206,15 +209,16 @@ estadisticas_portafolios <- function(estadistica,monto,portafolio,fecha_inicio,f
 rend_divisas <- function(monto, portafolio,fecha_inicio,fecha_fin){
   
   #Rendimiento en pesos
-  indices_mex <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("+CIGUB","+CIGUMP","+CIGULP","+CIPLUS","+CIBOLS","CRECE+")
+  indices_mex <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("+CIGUB","+CIGULP","+CIGUMP","+CIPLUS","+CIBOLS","CRECE+")
   portafolio_mex <- portafolio[indices_mex,]
   pesos <- portafolio_mex$Porcentaje/sum(portafolio_mex$Porcentaje)
   rend_mex <- rendimiento_instrumentos(monto,portafolio_mex,pesos,fecha_inicio,fecha_fin)
-  rend_mex <- 100*(rend_mex[length(rend_mex[,2]),2]/monto-1)
+  rend_mex <- rend_mex[length(rend_mex[,2]),2]
+  rend_mex <- ifelse(rend_mex == 0,NA,100*(rend_mex/monto-1))
   rend_mex <- c(rend_mex,360*rend_mex/as.numeric(fecha_fin-fecha_inicio))
   
   #Rendimiento en dólares
-  indices_us <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("+CIEQUS","+CIUSD","NAVIGTR")
+  indices_us <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("+CIUSD","+CIEQUS","NAVIGTR")
   portafolio_us <- portafolio[indices_us,]
   pesos <- portafolio_us$Porcentaje/sum(portafolio_us$Porcentaje)
   rend_us <- rendimiento_dolareseuros("dolares",monto,portafolio_us,pesos,fecha_inicio,fecha_fin)
@@ -255,13 +259,15 @@ diah <-  function(fecha){
 }
 
 #Datos
-festivos <- read.csv("festivos.csv")
-precios <- read.csv("precios.csv",stringsAsFactors = FALSE)
+load("precios.rds")
 precios$X <-  NULL
+festivos <- read.csv("festivos.csv")
 limites_lp <- read.csv("limites_lp.csv",stringsAsFactors = FALSE)
 fondos_industria <- unique(precios$id)
-fondos_propios <- c("51-+CIGUB-C-4","51-+CIGULP-C-4","51-+CIGUMP-C-4","51-+CIPLUS-A","51-+CIUSD-C-4",
-                    "52-+CIBOLS-C-4","52-+CIEQUS-C-4","52-AXESEDM-F3","52-CRECE+-B-5","52-NAVIGTR-BF3")
+
+#En este orden o el deploy no funciona
+fondos_propios <- c("51-+CIGUB-C-4","51-+CIGULP-C-4","51-+CIGUMP-C-4","51-+CIPLUS-C-4","51-+CIUSD-C-4",
+                    "52-+CIBOLS-C-4","52-AXESEDM-F3","52-+CIEQUS-C-4","52-CRECE+-B-5","52-NAVIGTR-BF3")
 porcentaje <- porcentajes_optimos("Conservador",data.frame(Fondos = fondos_propios),diah(Sys.Date()-180),
                                   diah(Sys.Date()-1))
 df <- data.frame(Fondos=fondos_propios,Porcentaje=porcentaje,stringsAsFactors = FALSE)
