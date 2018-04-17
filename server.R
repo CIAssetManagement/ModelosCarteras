@@ -134,6 +134,11 @@ shinyServer(function(input, output) {
       datatable(rendimiento1,options = list(dom = 't', pageLength = 100))
     })
     
+    output$monto <- reactive({
+      monto <- input$monto_inversion
+      return(paste0("$",format(monto,big.mark = ",")))
+    })
+    
   })
   
   output$portafolios1 <- downloadHandler(
