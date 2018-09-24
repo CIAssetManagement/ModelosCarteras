@@ -1,4 +1,5 @@
 ---
+title: "Propuesta de Portafolio"
 output: html_document
 params:
   inicio: NA
@@ -6,13 +7,11 @@ params:
   promotor: NA
   nombre: NA
   perfil: NA
+  mxpusdeur: NA
   ci_portafolio: NA
-  otro_portafolio: NA
   grafica_rendimiento: NA
   ci_summary: NA
-  otro_summary: NA
   ci_pie: NA
-  otro_pie: NA
 ---
 
 ```{r, include = FALSE}
@@ -24,23 +23,17 @@ library(kableExtra)
 
 ```
 
-
-```{r, out.width='25%'}
-knitr::include_graphics("estrategias.png")
-```
-
 <br>
 
 #### Portafolio propuesto por **`r params$promotor`** para **`r params$nombre`**
 
-```{r, fig.show='hold', fig.height = 3, fig.width = 5}
+<br>
 
+```{r, fig.show='hold', fig.height = 3, fig.width = 5}
 #Posiciones de los portafolios
 p1 <- params$ci_portafolio
-p2 <- params$otro_portafolio
 fixed_percent1 <- sum(p1$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, 
                                            ifelse(substr(p1$Fondo,1,8) == "52-NAVIG",TRUE,FALSE))])
-fixed_percent2 <- sum(p2$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, FALSE)])
 
 params$ci_summary %>%
   kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
@@ -57,40 +50,18 @@ params$ci_pie
 
 ---
 
-#### Otro portafolio:
-
-```{r, fig.show='hold', fig.height = 3, fig.width = 5}
-
-params$otro_summary %>%
-  kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
-  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 15) %>%
-  column_spec(1, bold = TRUE)
-
-params$otro_pie
-
-```
-
-<br>
-
-#### Consta de `r paste0(fixed_percent2*100,"%")` **deuda** y `r paste0((1-fixed_percent2)*100,"%")` **renta variable** para un perfil **`r tolower(params$perfil)`**.
-
----
-
-<br>
-
-#### Rendimientos en pesos de ambos portafolios
+#### Rendimientos de la propuesta
 
 #### del `r format(params$inicio, '%d de %B del %Y')` al `r format(params$fin, '%d de %B del %Y')`
 
-```{r}
+
+```{r, fig.show='hold', fig.height = 3.5, fig.width = 5}
+
+params$mxpusdeur %>%
+  kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
+  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 12) %>%
+  column_spec(1, bold = TRUE)
 
 params$grafica_rendimiento
 
 ```
-
-| Notas  |
-|---|
-| 1. Rendimientos pasados no garantizan resultados futuros. |
-| 2. Los rendimientos presentados son de gestion. |
-| 3. El documento fue escrito sin acentos. | 
-

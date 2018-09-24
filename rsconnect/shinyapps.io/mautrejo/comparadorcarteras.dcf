@@ -5,9 +5,6 @@ account: mautrejo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 309797
-bundleId: 1300223
+bundleId: 1602218
 url: https://mautrejo.shinyapps.io/comparadorcarteras/
-when: 1522777399.82437
-asMultiple: FALSE
-asStatic: FALSE
-ignoredFiles: .RData|README.md
+when: 1537800049.92771

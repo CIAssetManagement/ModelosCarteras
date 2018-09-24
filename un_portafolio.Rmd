@@ -1,17 +1,21 @@
 ---
-title: "Propuesta de Portafolio"
 output: html_document
 params:
   inicio: NA
   fin: NA
+  monto: NA
   promotor: NA
   nombre: NA
   perfil: NA
-  mxpusdeur: NA
   ci_portafolio: NA
-  grafica_rendimiento: NA
   ci_summary: NA
+  ci_proporcion: NA
   ci_pie: NA
+  rf_r: NA
+  rfu_r: NA
+  rv_r: NA
+  rvu_r: NA
+  rve_r: NA
 ---
 
 ```{r, include = FALSE}
@@ -23,46 +27,115 @@ library(kableExtra)
 
 ```
 
+```{r, out.width='25%'}
+knitr::include_graphics("estrategias.png")
+```
+
 <br>
 
 #### Portafolio propuesto por **`r params$promotor`** para **`r params$nombre`**
 
-<br>
-
 ```{r, fig.show='hold', fig.height = 3, fig.width = 5}
 #Posiciones de los portafolios
 p1 <- params$ci_portafolio
-p2 <- params$otro_portafolio
-fixed_percent1 <- sum(p1$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, FALSE)])
-fixed_percent2 <- sum(p2$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, FALSE)])
-
+fixed_percent1 <- sum(p1$Porcentaje[ifelse(substr(p1$Fondo,1,2) == "51", TRUE, 
+                                           ifelse(substr(p1$Fondo,1,8) == "52-NAVIG",TRUE,FALSE))])
+fechaprimera <- paste0("Periodo ",format(params$inicio, "%d de %B del %Y")," - ",format(params$fin, "%d de %B del %Y"))
 params$ci_summary %>%
-  kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
-  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 15) %>%
+  kable(booktabs = TRUE, caption =  fechaprimera, format = "html", align <- c("r","l")) %>%
+  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 12) %>%
   column_spec(1, bold = TRUE)
 
 params$ci_pie
 
+titulo1 <- ifelse("Renta Fija en MXN" %in% rownames(params$ci_proporcion), TRUE, FALSE)
+titulo2 <- ifelse("Renta Fija en USD" %in% rownames(params$ci_proporcion), TRUE, FALSE)
+titulo3 <- ifelse("Renta Variable en MXN" %in% rownames(params$ci_proporcion), TRUE, FALSE)
+titulo4 <- ifelse("Renta Variable en USD" %in% rownames(params$ci_proporcion), TRUE, FALSE)
+titulo5 <- ifelse("Renta Variable en EUR" %in% rownames(params$ci_proporcion), TRUE, FALSE)
+
+rf_mx <- params$ci_proporcion[which(rownames(params$ci_proporcion) == "Renta Fija en MXN"),]
+rf_us <- params$ci_proporcion[which(rownames(params$ci_proporcion) == "Renta Fija en USD"),]
+rv_mx <- params$ci_proporcion[which(rownames(params$ci_proporcion) == "Renta Variable en MXN"),]
+rv_us <- params$ci_proporcion[which(rownames(params$ci_proporcion) == "Renta Variable en USD"),]
+rv_eur <- params$ci_proporcion[which(rownames(params$ci_proporcion) == "Renta Variable en EUR"),]
+
+pesos <- as.numeric(sub("%", "", ifelse(titulo1 == FALSE,"0%",rf_mx)))
+pesos <- pesos + as.numeric(sub("%", "", ifelse(titulo3 == FALSE,"0%",rv_mx)))
+pesos <- paste0(pesos,"%")
+dolares <- as.numeric(sub("%", "", ifelse(titulo2 == FALSE,"0%",rf_us)))
+dolares <- dolares + as.numeric(sub("%", "", ifelse(titulo4 == FALSE,"0%",rv_us)))
+dolares <- paste0(dolares,"%")
+euros <- as.numeric(sub("%", "", ifelse(titulo5 == FALSE,"0%",rv_eur)))
+euros <- paste0(euros,"%")
+
+monedas <- ""
+monedas <- ifelse(pesos > 0, paste0("**",pesos, " en pesos**,"),"")
+monedas <- ifelse(dolares > 0, paste0(monedas," **",dolares, " en dolares**,"),paste0(monedas,""))
+monedas <- ifelse(euros > 0, paste0(monedas," **",euros, " en euros**."),paste0(monedas,"."))
+
+renta_fjmx <- paste0("Deuda en MXN ",rf_mx)
+renta_fjus <- paste0("Deuda en USD ",rf_us)
+renta_vmx <- paste0("Acciones en MXN ",rv_mx)
+renta_vus <- paste0("Acciones en USD ",rv_us)
+renta_veur <- paste0("Acciones en EUR ",rv_eur)
+
 ```
 
 <br>
 
-#### Se propone un portafolio compuesto de `r paste0(fixed_percent1*100,"%")` **deuda** y `r paste0((1-fixed_percent1)*100,"%")` de **renta variable** para un perfil **`r tolower(params$perfil)`**.
+##### En las condiciones actuales de mercado se propone un portafolio compuesto de **`r paste0(fixed_percent1*100,"%")` deuda** y **`r paste0((1-fixed_percent1)*100,"%")` acciones** para un perfil **`r tolower(params$perfil)`**.
 
----
+##### Distribuido en monedas de la siguiente manera: `r monedas`. Lo anterior con el fin de lograr una adecuada diversificacion del riesgo.
 
-#### Rendimientos de la propuesta
+<br>
 
-#### del `r format(params$inicio, '%d de %B del %Y')` al `r format(params$fin, '%d de %B del %Y')`
-
-
-```{r, fig.show='hold', fig.height = 3.5, fig.width = 5}
-
-params$mxpusdeur %>%
-  kable(booktabs = TRUE, format = "html", align <- c("r","l")) %>%
-  kable_styling(latex_options = "striped", position = "float_right", full_width = FALSE, font_size = 12) %>%
-  column_spec(1, bold = TRUE)
-
-params$grafica_rendimiento
+```{r, eval = titulo1}
+params$rf_r %>%
+kable(booktabs = TRUE, caption = renta_fjmx, format = "html", align <- c("l")) %>%
+kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
+column_spec(1, bold = TRUE)
 
 ```
+
+```{r, eval = titulo2}
+params$rfu_r %>%
+kable(booktabs = TRUE, caption = renta_fjus, format = "html", align <- c("l")) %>%
+kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
+column_spec(1, bold = TRUE)
+
+```
+
+```{r, eval = titulo3}
+params$rv_r %>%
+kable(booktabs = TRUE, caption = renta_vmx, format = "html", align <- c("l")) %>%
+kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
+column_spec(1, bold = TRUE)
+
+```
+
+```{r, eval = titulo4}
+params$rvu_r %>%
+kable(booktabs = TRUE, caption = renta_vus, format = "html", align <- c("l")) %>%
+kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
+column_spec(1, bold = TRUE)
+
+```
+
+```{r, eval = titulo5}
+params$rve_r %>%
+kable(booktabs = TRUE, caption = renta_veur, format = "html", align <- c("l")) %>%
+kable_styling(latex_options = "striped",position = "float_left",full_width = FALSE,font_size = 13) %>%
+column_spec(1, bold = TRUE)
+
+```
+
+| Notas  |
+|---|
+| 1. Rendimientos pasados no garantizan resultados futuros. |
+| 2. Los rendimientos presentados son antes de impuestos y comisiones. |
+| 3. El documento fue escrito sin acentos. | 
+
+
+
+

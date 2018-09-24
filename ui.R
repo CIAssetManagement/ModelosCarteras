@@ -31,7 +31,7 @@ shinyUI(fluidPage(
       wellPanel(h4("Perfil del Cliente"),selectInput("perfil_inversion","",c("Conservador", "Moderado","Agresivo"),
                                                    "Conservador")),
       wellPanel(h4("¿Quieres realizar un comparativo de fondos?"),checkboxInput("comparativo", "Sí", FALSE)),
-      wellPanel(dateRangeInput('rangofechas',label = 'Rango de fechas para el comparativo',start = diah(Sys.Date()-180), 
+      wellPanel(dateRangeInput('rangofechas',label = 'Rango de fechas para el comparativo',start = diah(Sys.Date()-365), 
                      end = diah(Sys.Date()-1),language = "es",separator = "a")),
       wellPanel(h4("Iniciar el cálculo"),actionButton("calcular", "Iniciar")),
       wellPanel(conditionalPanel(condition = "!input.comparativo",downloadButton("portafolios1", "Generar propuesta")),

@@ -89,6 +89,34 @@ porcentajes_optimos <- function(perfil,portafolio, fecha_inicio, fecha_fin){
   return(porcentajes)
 }
 
+porcentajes_portafolio <- function(portafolio){
+  claves <- substr(portafolio$Fondos,1,7)
+  rf_mx <- 100*sum(portafolio$Porcentaje[which(claves %in% c("51-+CIG","51-+CIP"))])
+  rf_us <- 100*sum(portafolio$Porcentaje[which(claves %in% c("51-+CIU","52-NAVI"))])
+  rv_mx <- 100*sum(portafolio$Porcentaje[which(claves %in% c("52-+CIB","52-CREC"))])
+  rv_us <- 100*sum(portafolio$Porcentaje[which(claves %in% c("52-+CIE"))])
+  rv_eur <- 100*sum(portafolio$Porcentaje[which(claves %in% c("52-AXES"))])
+  
+  datos1 <- data.frame(Porcentaje = c(sum(rf_mx,rf_us),sum(rv_mx,rv_us,rv_eur)),
+                       row.names = c("Renta Fija","Renta Variable"),stringsAsFactors = FALSE)
+  datos1 <- datos1[order(-datos1$Porcentaje),, drop = FALSE]
+  
+  datos2 <- data.frame( Porcentaje = c(sum(rf_mx,rv_mx),sum(rf_us,rv_us),rv_eur),
+                        row.names = c("Total MXN","Total USD","Total EUR"), 
+                        stringsAsFactors = FALSE)
+  datos2 <- datos2[order(-datos2$Porcentaje),, drop = FALSE]
+  
+  datos3 <- data.frame(Porcentaje = c(rf_mx,rf_us,rv_mx,rv_us,rv_eur), 
+                       row.names = c("Renta Fija en MXN", "Renta Fija en USD", "Renta Variable en MXN", 
+                                     "Renta Variable en USD", "Renta Variable en EUR"))
+  
+  datoss <- rbind(datos1,datos2,datos3)
+  datoss <- datoss[which(datoss$Porcentaje != 0),,drop = FALSE]
+  datoss$Porcentaje <- ifelse(datoss$Porcentaje != " ", paste0(datoss$Porcentaje,"%"), datoss$Porcentaje)
+  
+  return(datoss)
+}
+
 rendimiento_portafolios <- function(monto,p1,p2,fecha_inicio,fecha_fin){
   #¿Hay algo en el portafolio 2?
   indices_2 <- unique(p2$Fondos %in% fondos_industria)
@@ -113,7 +141,7 @@ rendimiento_instrumentos <- function(monto,portafolio,pesos,fecha_inicio,fecha_f
     filter(fecha %in% sapply(seq(fecha_inicio,fecha_fin,by = "1 day"),diah)) %>%
     data.frame(check.names = FALSE)
   
-  pesos <- pesos[order(portafolio$Fondos)]
+  pesos <- pesos[order(portafolio$Fondos)]/sum(pesos)
   
   if(length(colnames(prices)) > 2){
     returns <- data.frame(matrix(unlist(apply(prices[,-1], 1, function(x) x/prices[1,-1] )),
@@ -139,9 +167,6 @@ rendimiento_dolareseuros <- function(tipo,monto,portafolio,pesos,fecha_inicio,fe
     filter(fecha %in% sapply(seq(fecha_inicio-5,fecha_fin,by = "1 day"),diah)) %>%
     data.frame(check.names = FALSE)
   
-  #En este orden o el deploy no funciona
-  if(tipo == "dolares")
-    pesos <- pesos[order(c("+CIUSD","+CIEQUS","NAVIGTR"))]
   
   moneda_extranjera <- prices[-length(prices$fecha),sort(fondos)[1]]
   fecha <- prices$fecha[-1]
@@ -209,21 +234,20 @@ estadisticas_portafolios <- function(estadistica,monto,portafolio,fecha_inicio,f
 rend_divisas <- function(monto, portafolio,fecha_inicio,fecha_fin){
   
   #Rendimiento en pesos
-  indices_mex <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("+CIGUB","+CIGULP","+CIGUMP","+CIPLUS","+CIBOLS","CRECE+")
+  indices_mex <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% 
+    c("+CIGUB","+CIGULP","+CIGUMP","+CIPLUS","+CIBOLS","CRECE+")
   portafolio_mex <- portafolio[indices_mex,]
   pesos <- portafolio_mex$Porcentaje/sum(portafolio_mex$Porcentaje)
   rend_mex <- rendimiento_instrumentos(monto,portafolio_mex,pesos,fecha_inicio,fecha_fin)
   rend_mex <- rend_mex[length(rend_mex[,2]),2]
   rend_mex <- ifelse(rend_mex == 0,NA,100*(rend_mex/monto-1))
-  rend_mex <- c(rend_mex,360*rend_mex/as.numeric(fecha_fin-fecha_inicio))
   
   #Rendimiento en dólares
-  indices_us <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("+CIUSD","+CIEQUS","NAVIGTR")
+  indices_us <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("+CIEQUS","+CIUSD","NAVIGTR")
   portafolio_us <- portafolio[indices_us,]
   pesos <- portafolio_us$Porcentaje/sum(portafolio_us$Porcentaje)
   rend_us <- rendimiento_dolareseuros("dolares",monto,portafolio_us,pesos,fecha_inicio,fecha_fin)
   rend_us <- 100*(rend_us[length(rend_us[,2]),2]/monto-1)
-  rend_us <- c(rend_us,360*rend_us/as.numeric(fecha_fin-fecha_inicio))
   
   #Rendimiento en euros
   indices_eur <- as.character(sapply(portafolio$Fondos,function(x) strsplit(x,"-")[[1]][2])) %in% c("AXESEDM")
@@ -231,17 +255,14 @@ rend_divisas <- function(monto, portafolio,fecha_inicio,fecha_fin){
   pesos <- portafolio_eur$Porcentaje/sum(portafolio_eur$Porcentaje)
   rend_eur <- rendimiento_dolareseuros("euros",monto,portafolio_eur,pesos,fecha_inicio,fecha_fin)
   rend_eur <- 100*(rend_eur[length(rend_eur[,2]),2]/monto-1)
-  rend_eur <- c(rend_eur,360*rend_eur/as.numeric(fecha_fin-fecha_inicio))
   
-  rend_tot <- rendimiento_instrumentos(monto,portafolio,portafolio$Porcentaje,fecha_inicio,fecha_fin)
-  rend_tot <- 100*(rend_tot[length(rend_tot[,2]),2]/monto-1)
-  rend_tot <- c(rend_tot,360*rend_tot/as.numeric(fecha_fin-fecha_inicio))
-  
-  datos <- c(rend_mex,rend_us,rend_eur,rend_tot) %>%
-    round(digits = 2) %>%
-    paste0("%") %>% 
-    ifelse(.=="NaN%","-",.) %>%
-    ifelse(.=="NA%","-",.)
+  indices <- !is.na(c(rend_mex,rend_us,rend_eur))
+  datos <- data.frame(Rendimientos = c(rend_mex,rend_us,rend_eur)[indices],
+                      row.names = c("Rendimiento en MXN", "Rendimiento en USD", "Rendimiento en EUR")[indices],
+                      stringsAsFactors = FALSE) %>%
+    round(digits = 2)
+  datos$Rendimientos <- paste0(datos$Rendimientos,"%")
+  colnames(datos) <- "Rendimientos"
   
   return(datos)
 }
@@ -260,14 +281,18 @@ diah <-  function(fecha){
 
 #Datos
 load("precios.rds")
+load("dolar.rds")
+load("euro.rds")
 precios$X <-  NULL
 festivos <- read.csv("festivos.csv")
 limites_lp <- read.csv("limites_lp.csv",stringsAsFactors = FALSE)
 fondos_industria <- unique(precios$id)
 
 #En este orden o el deploy no funciona
-fondos_propios <- c("51-+CIGUB-C-4","51-+CIGULP-C-4","51-+CIGUMP-C-4","51-+CIPLUS-C-4","51-+CIUSD-C-4",
-                    "52-+CIBOLS-C-4","52-AXESEDM-F3","52-+CIEQUS-C-4","52-CRECE+-B-5","52-NAVIGTR-BF3")
+# fondos_propios <- c("51-+CIGUB-C-4","51-+CIGULP-C-4","51-+CIGUMP-C-4","51-+CIPLUS-C-4","51-+CIUSD-C-4",
+#                     "52-+CIBOLS-C-4","52-AXESEDM-F3","52-+CIEQUS-C-4","52-CRECE+-B-5","52-NAVIGTR-BF3")
+fondos_propios <- c("51-+CIGUB-A","51-+CIGULP-A","51-+CIGUMP-A","51-+CIPLUS-A","51-+CIUSD-A",
+                    "52-+CIBOLS-A","52-AXESEDM-A","52-+CIEQUS-A","52-CRECE+-A","52-NAVIGTR-A")
 porcentaje <- porcentajes_optimos("Conservador",data.frame(Fondos = fondos_propios),diah(Sys.Date()-180),
                                   diah(Sys.Date()-1))
 df <- data.frame(Fondos=fondos_propios,Porcentaje=porcentaje,stringsAsFactors = FALSE)
