@@ -91,6 +91,7 @@ renta_veur <- paste0("Acciones en EUR ",rv_eur)
 <br>
 
 ```{r, eval = titulo1}
+### Rendimiento renta fija pesos
 params$rf_r %>%
 kable(booktabs = TRUE, caption = renta_fjmx, format = "html", align <- c("l")) %>%
 kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
@@ -99,6 +100,15 @@ column_spec(1, bold = TRUE)
 ```
 
 ```{r, eval = titulo2}
+### Rendimiento renta variable pesos
+params$rv_r %>%
+kable(booktabs = TRUE, caption = renta_vmx, format = "html", align <- c("l")) %>%
+kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
+column_spec(1, bold = TRUE)
+```
+
+```{r, eval = titulo3}
+### Rendimiento renta fija dolares
 params$rfu_r %>%
 kable(booktabs = TRUE, caption = renta_fjus, format = "html", align <- c("l")) %>%
 kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
@@ -106,15 +116,8 @@ column_spec(1, bold = TRUE)
 
 ```
 
-```{r, eval = titulo3}
-params$rv_r %>%
-kable(booktabs = TRUE, caption = renta_vmx, format = "html", align <- c("l")) %>%
-kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
-column_spec(1, bold = TRUE)
-
-```
-
 ```{r, eval = titulo4}
+### Rendimiento renta variable dolares
 params$rvu_r %>%
 kable(booktabs = TRUE, caption = renta_vus, format = "html", align <- c("l")) %>%
 kable_styling(latex_options = "striped", position = "float_left", full_width = FALSE, font_size = 13) %>%
@@ -123,6 +126,7 @@ column_spec(1, bold = TRUE)
 ```
 
 ```{r, eval = titulo5}
+### Rendimiento euros
 params$rve_r %>%
 kable(booktabs = TRUE, caption = renta_veur, format = "html", align <- c("l")) %>%
 kable_styling(latex_options = "striped",position = "float_left",full_width = FALSE,font_size = 13) %>%
@@ -132,9 +136,11 @@ column_spec(1, bold = TRUE)
 
 | Notas  |
 |---|
-| 1. Rendimientos pasados no garantizan resultados futuros. |
-| 2. Los rendimientos presentados son antes de impuestos y comisiones. |
-| 3. El documento fue escrito sin acentos. | 
+|  1. Rendimientos pasados no garantizan resultados futuros. |
+|  2. Los rendimientos presentados son antes de comisiones. |
+|  3. El documento fue escrito sin acentos. | 
+|  *Monto en dolares.  |
+| **Monto en euros.
 
 
 

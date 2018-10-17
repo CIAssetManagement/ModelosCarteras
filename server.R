@@ -200,10 +200,13 @@ shinyServer(function(input, output) {
           nombres <- c(nombres,"+CIPLUS")
         }
         
+        rend_mon <- t(rendimientos[length(rendimientos$Fecha),-1])
         vector_rend <- t(100*(rendimientos[length(rendimientos$Fecha),-1]/ rendimientos[1,-1]-1))
         vector_rend <- data.frame(Rendimiento = vector_rend)
         vector_rend[] <- lapply(vector_rend, function(x){paste0(round(x,digits = 2),"%")})
+        vector_rend <- cbind(vector_rend,RendimientoMonto = scales::dollar(round(rend_mon,0)))
         rownames(vector_rend) <- nombres
+        colnames(vector_rend) <- c("Rendimiento","Monto")
         values[["rf_mex_rend"]] <- vector_rend
         
       } else {
@@ -221,7 +224,7 @@ shinyServer(function(input, output) {
           monto_dolares <- monto / dolar
           rendimientos <- data.frame(rendimiento_dolareseuros("dolares",monto_dolares,portafolio[c(5,8,10),],c(1,0,0),diah(Sys.Date()-365),diah(Sys.Date()-1)))
           colnames(rendimientos) <- c("Fecha","+CIUSD") 
-          nombres <- c(nombres,"+CIUSD USD")
+          nombres <- c(nombres,"*+CIUSD USD")
           
           rrendimientos <- data.frame(rendimiento_portafolios(monto,portafolio[5,],NULL,diah(Sys.Date()-365),diah(Sys.Date()-1)))
           rrendimientos$series <- NULL
@@ -240,7 +243,7 @@ shinyServer(function(input, output) {
           } else {
             rendimientos <- merge(rendimientos,rendimientos3, by = 1)
           }
-          nombres <- c(nombres,"NAVIGTR USD")
+          nombres <- c(nombres,"*NAVIGTR USD")
           
           rrendimientos3 <- data.frame(rendimiento_portafolios(monto,portafolio[10,],NULL,diah(Sys.Date()-365),diah(Sys.Date()-1)))
           rrendimientos3$series <- NULL
@@ -253,21 +256,25 @@ shinyServer(function(input, output) {
           rnombres <- c(rnombres,"NAVIGTR MXN")
         }
         
+        rend_mon_dls <- t(rendimientos[length(rendimientos$Fecha),-1])
         vector_rend <- t(100*(rendimientos[length(rendimientos$Fecha),-1]/ rendimientos[1,-1]-1))
         
         vector_rend <- data.frame(Rendimiento = vector_rend)
         vector_rend[] <- lapply(vector_rend, function(x){paste0(round(x,digits = 2),"%")})
-        colnames(vector_rend) <- "Rendimiento"
+        vector_rend <- cbind(vector_rend,RendimientoMonto = scales::dollar(round(rend_mon_dls,0)))
+        colnames(vector_rend) <- c("Rendimiento","Monto")
         rownames(vector_rend) <- nombres
         
+        rend_mon <- t(rrendimientos[length(rrendimientos$Fecha),-1])
         vector_rendd <- t(100*(rrendimientos[length(rrendimientos$Fecha),-1]/ rrendimientos[1,-1]-1))
         
         vector_rendd <- data.frame(Rendimiento = vector_rendd)
         vector_rendd[] <- lapply(vector_rendd, function(x){paste0(round(x,digits = 2),"%")})
-        colnames(vector_rendd) <- "Rendimiento"
+        vector_rendd <- cbind(vector_rendd,RendimientoMonto = scales::dollar(round(rend_mon,0)))
+        colnames(vector_rendd) <- c("Rendimiento","Monto")
         rownames(vector_rendd) <- rnombres
         
-        espacio <- data.frame(Rendimiento = " ",row.names = " ")
+        espacio <- data.frame(Rendimiento = " ", Monto = " ",row.names = " ")
         vector_rend <- rbind(vector_rend,espacio,vector_rendd)
         
         values[["rf_usd_rend"]] <- vector_rend
@@ -309,11 +316,13 @@ shinyServer(function(input, output) {
           }
           nombres <- c(nombres,"CRECE+")
         }
-        
+        rend_mon <- t(rendimientos[length(rendimientos$Fecha),-1])
         vector_rend <- t(100*(rendimientos[length(rendimientos$Fecha),-1]/ rendimientos[1,-1]-1))
         vector_rend <- data.frame(Rendimiento = vector_rend)
         vector_rend[] <- lapply(vector_rend, function(x){paste0(round(x,digits = 2),"%")})
+        vector_rend <- cbind(vector_rend,RendimientoMonto = scales::dollar(round(rend_mon,0)))
         rownames(vector_rend) <- nombres
+        colnames(vector_rend) <- c("Rendimientos","Monto")
         values[["rv_mex_rend"]] <- vector_rend
         
       } else {
@@ -328,30 +337,34 @@ shinyServer(function(input, output) {
         monto_dolares <-  monto / dolar
           rendimientos <- data.frame(rendimiento_dolareseuros("dolares",monto_dolares,portafolio[c(5,8,10),],c(0,1,0),input$rangofechas[1],input$rangofechas[2]))
           colnames(rendimientos) <- c("Fecha","+CIEQUS") 
-          nombres <- c(nombres,"+CIEQUS USD")
+          nombres <- c(nombres,"*+CIEQUS USD")
           
           rrendimientos <- data.frame(rendimiento_portafolios(monto,portafolio[8,],NULL,input$rangofechas[1],input$rangofechas[2]))
           rrendimientos$series <- NULL
           colnames(rrendimientos) <- c("Fecha","+CIEQUS") 
           rnombres <- c(rnombres,"+CIEQUS MXN")
           
+          rend_mon_dls <- t(rendimientos[length(rendimientos$Fecha),-1])
           vector_rend <- t(100*(rendimientos[length(rendimientos$Fecha),-1]/ rendimientos[1,-1]-1))
           dias <- as.numeric(input$rangofechas[2] - input$rangofechas[1])
           vector_rend2 <- 360*vector_rend/dias
           
           vector_rend <- data.frame(Rendimiento = vector_rend)
           vector_rend[] <- lapply(vector_rend, function(x){paste0(round(x,digits = 2),"%")})
-          colnames(vector_rend) <- "Rendimiento"
+          vector_rend <- cbind(vector_rend,RendimientoMonto = scales::dollar(round(rend_mon_dls,0)))
+          colnames(vector_rend) <- c("Rendimiento","Monto")
           rownames(vector_rend) <- nombres
           
+          rend_mon <- t(rrendimientos[length(rrendimientos$Fecha),-1])
           vector_rendd <- t(100*(rrendimientos[length(rrendimientos$Fecha),-1]/ rrendimientos[1,-1]-1))
           
           vector_rendd <- data.frame(Rendimiento = vector_rendd)
           vector_rendd[] <- lapply(vector_rendd, function(x){paste0(round(x,digits = 2),"%")})
-          colnames(vector_rendd) <- "Rendimiento"
+          vector_rendd <- cbind(vector_rendd,RendimientoMonto = scales::dollar(round(rend_mon,0)))
+          colnames(vector_rendd) <- c("Rendimiento","Monto")
           rownames(vector_rendd) <- rnombres
           
-          espacio <- data.frame(Rendimiento = " ", row.names = " ")
+          espacio <- data.frame(Rendimiento = " ", Monto = " ",row.names = " ")
           vector_rend <- rbind(vector_rend,espacio,vector_rendd)
           
           values[["rv_usd_rend"]] <- vector_rend
@@ -368,28 +381,32 @@ shinyServer(function(input, output) {
         monto_euros <-  monto / euro
         rendimientos <- data.frame(rendimiento_dolareseuros("euros",monto_euros,portafolio[7,],1,input$rangofechas[1],input$rangofechas[2]))
         colnames(rendimientos) <- c("Fecha","AXESEDM") 
-        nombres <- c(nombres,"AXESEDM EUR")
+        nombres <- c(nombres,"**AXESEDM EUR")
         
         rrendimientos <- data.frame(rendimiento_portafolios(monto,portafolio[7,],NULL,input$rangofechas[1],input$rangofechas[2]))
         rrendimientos$series <- NULL
         colnames(rrendimientos) <- c("Fecha","AXESEDM") 
         rnombres <- c(rnombres,"AXESEDM MXN")
         
+        rend_mon_eur <- t(rendimientos[length(rendimientos$Fecha),-1])
         vector_rend <- t(100*(rendimientos[length(rendimientos$Fecha),-1]/ rendimientos[1,-1]-1))
         
         vector_rend <- data.frame(Rendimiento = vector_rend)
         vector_rend[] <- lapply(vector_rend, function(x){paste0(round(x,digits = 2),"%")})
-        colnames(vector_rend) <- "Rendimiento"
+        vector_rend <- cbind(vector_rend,RendimientoMonto = scales::dollar(round(rend_mon_eur,2)))
+        colnames(vector_rend) <- c("Rendimiento","Monto")
         rownames(vector_rend) <- nombres
         
+        rend_mon <- t(rrendimientos[length(rrendimientos$Fecha),-1])
         vector_rendd <- t(100*(rrendimientos[length(rrendimientos$Fecha),-1]/ rrendimientos[1,-1]-1))
         
         vector_rendd <- data.frame(Rendimiento = vector_rendd)
         vector_rendd[] <- lapply(vector_rendd, function(x){paste0(round(x,digits = 2),"%")})
-        colnames(vector_rendd) <- "Rendimiento"
+        vector_rendd <- cbind(vector_rendd,RendimientoMonto = scales::dollar(round(rend_mon,0)))
+        colnames(vector_rendd) <- c("Rendimiento","Monto")
         rownames(vector_rendd) <- rnombres
         
-        espacio <- data.frame(Rendimiento = " ", row.names = " ")
+        espacio <- data.frame(Rendimiento = " ", Monto = " ",row.names = " ")
         vector_rend <- rbind(vector_rend,espacio,vector_rendd)
         
         values[["rv_eur_rend"]] <- vector_rend

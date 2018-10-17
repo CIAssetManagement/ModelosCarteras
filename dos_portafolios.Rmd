@@ -91,6 +91,6 @@ params$grafica_rendimiento
 | Notas  |
 |---|
 | 1. Rendimientos pasados no garantizan resultados futuros. |
-| 2. Los rendimientos presentados son de gestion. |
+| 2. Los rendimientos presentados son antes de comisiones. |
 | 3. El documento fue escrito sin acentos. | 
 
